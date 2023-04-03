@@ -11,9 +11,10 @@ public class amazing_number {
     Boolean palindromic;
     Boolean gapful;
     Boolean spy;
-
+    Boolean sunny;
+    Boolean square;
+    Boolean jumping;
     long digit;
-
 
     public amazing_number(long digit) {
         this.buzz = false;
@@ -24,6 +25,51 @@ public class amazing_number {
         this.palindromic = false;
         this.gapful = false;
         this.spy = false;
+        this.sunny = false;
+        this.square = false;
+        this.jumping = false;
+    }
+
+    public Boolean getJumping() {
+        return jumping;
+    }
+
+    public void setJumping() {
+        String digit_string = Long.toString(this.digit);
+        int counter = 0;
+        int length = digit_string.length();
+
+        for (int i = 0; i < length - 1; i++) {
+            int calculation = (int) Math.abs(Long.valueOf(digit_string.charAt(i)) - Long.valueOf(digit_string.charAt(i + 1)));
+            if (calculation == 1) {
+                counter += 1;
+            }
+        }
+        if (counter == length - 1 || length == 1) {
+            this.jumping = true;
+        }
+    }
+
+    public Boolean getSunny() {
+        return sunny;
+    }
+
+    public void setSunny() {
+        long squared = (long) Math.sqrt(this.digit + 1);
+        if ((long) ((Math.floor(squared) * Math.floor(squared))) == this.digit + 1) {
+            this.sunny = true;
+        }
+    }
+
+    public Boolean getSquare() {
+        return square;
+    }
+
+    public void setSquare() {
+        long squared = (long) Math.sqrt(this.digit);
+        if ((long) ((Math.floor(squared) * Math.floor(squared))) == this.digit || squared == digit) {
+            this.square = true;
+        }
     }
 
     public long getDigit() {
@@ -86,6 +132,15 @@ public class amazing_number {
         }
         if (this.spy) {
             attributes.add("spy");
+        }
+        if (this.sunny) {
+            attributes.add("sunny");
+        }
+        if (this.square) {
+            attributes.add("square");
+        }
+        if (this.jumping) {
+            attributes.add("jumping");
         }
 
         return attributes;

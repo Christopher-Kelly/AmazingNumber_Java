@@ -47,6 +47,9 @@ public class Main {
         number.setPalindromic();
         number.setGapful();
         number.setSpy();
+        number.setSquare();
+        number.setSunny();
+        number.setJumping();
 
         if (choice == 1) {
             System.out.printf("Properties of %d\n", number.digit);
@@ -57,6 +60,9 @@ public class Main {
             System.out.printf("palindromic: %b\n", number.getPalindromic());
             System.out.printf("gapful: %b\n", number.getGapful());
             System.out.printf("spy: %b\n", number.getSpy());
+            System.out.printf("sunny: %b\n", number.getSunny());
+            System.out.printf("square: %b\n", number.getSquare());
+            System.out.printf("jumping: %b\n", number.getJumping());
         }
     }
 
@@ -98,8 +104,7 @@ public class Main {
         System.out.println("Enter a request: ");
     }
 
-    public static void three_param_routine(String[] digit) {
-        List<String> attributes = new ArrayList<String>();
+    public static List<String> attribute_adder(List<String> attributes) {
         attributes.add("EVEN");
         attributes.add("ODD");
         attributes.add("BUZZ");
@@ -107,11 +112,18 @@ public class Main {
         attributes.add("PALINDROMIC");
         attributes.add("GAPFUL");
         attributes.add("SPY");
+        attributes.add("SUNNY");
+        attributes.add("SQUARE");
+        attributes.add("JUMPING");
+        return attributes;
+    }
+
+    public static void three_param_routine(String[] digit) {
+        List<String> attributes = new ArrayList<String>();
+        attribute_adder(attributes);
 
         long param1 = Long.valueOf(digit[0]);
         long param2 = Long.valueOf(digit[1]);
-        long matches = 0;
-        long counter = 0;
 
         String param3 = digit[2].toLowerCase();
 
@@ -120,17 +132,124 @@ public class Main {
             System.out.printf("Available properties: %s\n", attributes);
             System.out.println("Enter a request: ");
         } else {
-            while (matches < param2) {
-                amazing_number temp_number = new amazing_number(param1 + counter);
-                number_generator(temp_number, 0);
-                if (temp_number.getAttributes().contains(param3)) {
-                    attributes = temp_number.getAttributes();
-                    print_attributes(attributes, temp_number.digit);
-                    matches++;
-                }
-                counter++;
-            }
+            match_finder(param1, param2, param3, attributes);
             System.out.println("Enter a request: ");
+        }
+    }
+
+    public static void match_finder(long param1, long param2, String param3, List<String> attributes) {
+        long matches = 0;
+        long counter = 0;
+
+        while (matches < param2) {
+            amazing_number temp_number = new amazing_number(param1 + counter);
+            number_generator(temp_number, 0);
+            if (temp_number.getAttributes().contains(param3)) {
+                attributes = temp_number.getAttributes();
+                print_attributes(attributes, temp_number.digit);
+                matches++;
+            }
+            counter++;
+        }
+    }
+
+    public static void match_finder(long param1, long param2, List<String> params, List<String> attributes) {
+        long total_matches = 0;
+        long increment_digit = 0;
+        long hits = 0;
+        int index_of_params = 0;
+
+        while (total_matches < param2) {
+            amazing_number temp_number = new amazing_number(param1 + increment_digit);
+            number_generator(temp_number, 0);
+            hits = 0;
+            index_of_params = 0;
+            while (index_of_params < params.size()) {
+                if (temp_number.getAttributes().contains(params.get(index_of_params))) {
+                    hits++;
+                }
+                index_of_params++;
+            }
+            if (hits == params.size()) {
+                attributes = temp_number.getAttributes();
+                print_attributes(attributes, temp_number.digit);
+                total_matches++;
+            }
+            increment_digit++;
+        }
+    }
+
+    public static List<String> contradiction_checker(List<String> contradictions, List<String> params, List<String> attributes) {
+        for (String param : params) {
+            if (param.equals("odd")) {
+                if (params.contains("even")) {
+                    contradictions.add(param);
+                    contradictions.add("even");
+                }
+            }
+            if (param.equals("sunny")) {
+                if (params.contains("square")) {
+                    contradictions.add(param);
+                    contradictions.add("square");
+                }
+            }
+            if (param.equals("spy")) {
+                if (params.contains("duck")) {
+                    contradictions.add(param);
+                    contradictions.add("duck");
+                }
+            }
+        }
+        return contradictions;
+    }
+
+    public static void four_param_routine(String[] digit) {
+        List<String> attributes = new ArrayList<String>();
+        List<String> params = new ArrayList<>();
+        List<String> error = new ArrayList<String>();
+        List<String> opposites = new ArrayList<String>();
+        List<String> contradictions = new ArrayList<String>();
+
+        opposites.add("[odd, even]");
+        opposites.add("[even, odd]");
+        opposites.add("[sunny, square]");
+        opposites.add("[square, sunny]");
+        opposites.add("[spy, duck]");
+        opposites.add("[duck, spy]");
+
+        attribute_adder(attributes);
+
+        long param1 = Long.valueOf(digit[0]);
+        long param2 = Long.valueOf(digit[1]);
+
+        for (int i = 2; i < digit.length; i++) {
+            params.add(digit[i].toLowerCase().trim());
+        }
+
+        for (String param : params) {
+            if (!attributes.contains(param.toUpperCase())) {
+                error.add(param);
+            }
+        }
+
+        if (error.size() > 0) {
+            if (error.size() == 1) {
+                System.out.printf("The property %s is wrong.\n", error.toString());
+            } else {
+                System.out.printf("The properties %s are wrong.\n", error.toString());
+            }
+            System.out.printf("Available properties: %s\n", attributes);
+            System.out.println("Enter a request: ");
+        } else {
+            contradictions = contradiction_checker(contradictions, params, attributes);
+            if (contradictions.size() > 0) {
+                System.out.printf("The request contains mutually exclusive properties: %s\n" +
+                        "There are no numbers with these properties.\n", contradictions.toString());
+                System.out.println("Enter a request: ");
+            } else {
+                match_finder(param1, param2, params, attributes);
+                System.out.println("Enter a request: ");
+            }
         }
     }
 
@@ -141,8 +260,8 @@ public class Main {
                 "- enter a natural number to know its properties;\n" +
                 "- enter two natural numbers to obtain the properties of the list:\n" +
                 "  * the first parameter represents a starting number;\n" +
-                "  * the second parameters show how many consecutive numbers are to be processed;\n" +
-                "- two natural numbers and a property to search for;\n" +
+                "  * the second parameter shows how many consecutive numbers are to be printed;\n" +
+                "- two natural numbers and properties to search for;\n" +
                 "- separate the parameters with one space;\n" +
                 "- enter 0 to exit.\n");
 
@@ -157,15 +276,19 @@ public class Main {
                 error(0);
                 continue;
             }
-            if (digit.length == 1) {
-                one_digit_routine(success);
-            } else {
-                if (digit.length == 2) {
+            switch (digit.length) {
+                case 1:
+                    one_digit_routine(success);
+                    break;
+                case 2:
                     two_param_routine(digit);
-                } else {
+                    break;
+                case 3:
                     three_param_routine(digit);
-                }
-
+                    break;
+                default:
+                    four_param_routine(digit);
+                    break;
             }
         }
     }
