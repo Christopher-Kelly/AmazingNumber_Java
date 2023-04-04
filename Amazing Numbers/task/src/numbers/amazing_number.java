@@ -14,6 +14,8 @@ public class amazing_number {
     Boolean sunny;
     Boolean square;
     Boolean jumping;
+    Boolean happy;
+    boolean sad;
     long digit;
 
     public amazing_number(long digit) {
@@ -28,6 +30,46 @@ public class amazing_number {
         this.sunny = false;
         this.square = false;
         this.jumping = false;
+        this.sad = true;
+        this.happy = false;
+    }
+
+    public boolean getSad() {
+        return sad;
+    }
+
+    public Boolean getHappy() {
+        return happy;
+    }
+
+    public void setHappy() {
+        int exit_condition = 0;
+        long product = 0;
+        long digit_copy = this.digit;
+        String digit_copy_string = Long.toString(digit_copy);
+        int copy_of_value = 0;
+
+        while (exit_condition == 0) {
+            for (int i = 0; i < digit_copy_string.length(); i++) {
+                long temp = Integer.parseInt(String.valueOf(digit_copy_string.charAt(i)));
+                product += Math.pow(temp, 2);
+                if (product == Math.pow(this.digit, 2)) {
+                    copy_of_value++;
+                }
+            }
+
+            if (product == 1) {
+                this.happy = true;
+                this.sad = false;
+                exit_condition = 1;
+                break;
+            } else if (product == digit_copy || copy_of_value == 2 || product == 145) {
+                exit_condition = 1;
+                break;
+            }
+            digit_copy_string = String.valueOf(product);
+            product = 0;
+        }
     }
 
     public Boolean getJumping() {
@@ -142,6 +184,12 @@ public class amazing_number {
         if (this.jumping) {
             attributes.add("jumping");
         }
+        if (this.happy) {
+            attributes.add("happy");
+        }
+        if (this.sad) {
+            attributes.add("sad");
+        }
 
         return attributes;
     }
@@ -156,7 +204,7 @@ public class amazing_number {
             char first = digit_string.charAt(0);
             char last = digit_string.charAt(digit_string.length() - 1);
 
-            String combined = "" + first + last;
+            String combined = String.valueOf(first) + last;
             int combined_int = Integer.valueOf(combined);
 
             if (this.digit % combined_int == 0) {
@@ -219,11 +267,7 @@ public class amazing_number {
         int status_end = end_checker(this.digit);
         int status = status_divisible + status_end;
 
-        if (status == 0) {
-            this.buzz = false;
-        } else {
-            this.buzz = true;
-        }
+        this.buzz = status != 0;
     }
 
     public Boolean getOdd() {

@@ -50,6 +50,7 @@ public class Main {
         number.setSquare();
         number.setSunny();
         number.setJumping();
+        number.setHappy();
 
         if (choice == 1) {
             System.out.printf("Properties of %d\n", number.digit);
@@ -63,6 +64,8 @@ public class Main {
             System.out.printf("sunny: %b\n", number.getSunny());
             System.out.printf("square: %b\n", number.getSquare());
             System.out.printf("jumping: %b\n", number.getJumping());
+            System.out.printf("happy: %b\n", number.getHappy());
+            System.out.printf("sad: %b\n", number.getSad());
         }
     }
 
@@ -115,49 +118,50 @@ public class Main {
         attributes.add("SUNNY");
         attributes.add("SQUARE");
         attributes.add("JUMPING");
+        attributes.add("HAPPY");
+        attributes.add("SAD");
         return attributes;
     }
 
     public static void three_param_routine(String[] digit) {
         List<String> attributes = new ArrayList<String>();
+        List<String> params = new ArrayList<String>();
         attribute_adder(attributes);
 
         long param1 = Long.valueOf(digit[0]);
         long param2 = Long.valueOf(digit[1]);
 
         String param3 = digit[2].toLowerCase();
+        String param3_copy = param3.replace("-", "");
 
-        if (!attributes.contains(param3.toUpperCase())) {
+        if (!attributes.contains(param3_copy.toUpperCase())) {
             System.out.printf("The property [%s] is wrong.\n", param3.toUpperCase());
             System.out.printf("Available properties: %s\n", attributes);
             System.out.println("Enter a request: ");
         } else {
-            match_finder(param1, param2, param3, attributes);
+            params.add(param3);
+            match_finder(param1, param2, params, attributes);
             System.out.println("Enter a request: ");
         }
     }
-
-    public static void match_finder(long param1, long param2, String param3, List<String> attributes) {
-        long matches = 0;
-        long counter = 0;
-
-        while (matches < param2) {
-            amazing_number temp_number = new amazing_number(param1 + counter);
-            number_generator(temp_number, 0);
-            if (temp_number.getAttributes().contains(param3)) {
-                attributes = temp_number.getAttributes();
-                print_attributes(attributes, temp_number.digit);
-                matches++;
-            }
-            counter++;
-        }
-    }
-
     public static void match_finder(long param1, long param2, List<String> params, List<String> attributes) {
         long total_matches = 0;
         long increment_digit = 0;
         long hits = 0;
         int index_of_params = 0;
+        int[] negatives = new int[params.size()];
+        Arrays.fill(negatives, -1);
+        int negative_counter = 0;
+        int counter = 0;
+
+        for (String param : params) {
+            if (param.contains("-")) {
+                negatives[negative_counter] = counter;
+                negative_counter++;
+            }
+            counter++;
+        }
+
 
         while (total_matches < param2) {
             amazing_number temp_number = new amazing_number(param1 + increment_digit);
@@ -165,12 +169,28 @@ public class Main {
             hits = 0;
             index_of_params = 0;
             while (index_of_params < params.size()) {
-                if (temp_number.getAttributes().contains(params.get(index_of_params))) {
-                    hits++;
+                if (temp_number.getAttributes().contains(params.get(index_of_params)) || (params.size() == 1 && negative_counter > 0)) {
+                    if (negative_counter > 0) {
+                        for (int index : negatives) {
+                            if (index == -1) {
+                                continue;
+                            } else if (!temp_number.getAttributes().contains(params.get(index).replace("-", ""))) {
+                                hits++;
+                            }
+                        }
+                    } else {
+                        hits++;
+                    }
                 }
                 index_of_params++;
             }
-            if (hits == params.size()) {
+            if (params.size() == 1) {
+                if (hits == params.size()) {
+                    attributes = temp_number.getAttributes();
+                    print_attributes(attributes, temp_number.digit);
+                    total_matches++;
+                }
+            } else if (hits == params.size() - negative_counter) {
                 attributes = temp_number.getAttributes();
                 print_attributes(attributes, temp_number.digit);
                 total_matches++;
@@ -179,31 +199,67 @@ public class Main {
         }
     }
 
+
     public static List<String> contradiction_checker(List<String> contradictions, List<String> params, List<String> attributes) {
         for (String param : params) {
-            if (param.equals("odd")) {
-                if (params.contains("even")) {
+            param = param.replace("-", "");
+            if (param.equals("odd") || param.equals("-even")) {
+                if (params.contains("even") || params.contains("-odd")) {
                     contradictions.add(param);
                     contradictions.add("even");
                 }
             }
-            if (param.equals("sunny")) {
+            if (param.equals("sunny") || param.equals("-square")) {
                 if (params.contains("square")) {
                     contradictions.add(param);
                     contradictions.add("square");
                 }
             }
-            if (param.equals("spy")) {
+            if (param.equals("spy") || param.equals("-duck")) {
                 if (params.contains("duck")) {
                     contradictions.add(param);
                     contradictions.add("duck");
                 }
             }
+            if (param.equals("happy") || param.equals("-sad")) {
+                if (params.contains("sad")) {
+                    contradictions.add(param);
+                    contradictions.add("sad");
+                }
+            }
+            String temp = "-" + param;
+            if (params.contains(temp) && params.contains(param)) {
+                contradictions.add(param);
+                contradictions.add(temp);
+            }
         }
         return contradictions;
     }
 
-    public static void four_param_routine(String[] digit) {
+    public static int error_checker(List<String> params, List<String> error, List<String> attributes) {
+        for (String param : params) {
+            param = param.replace("-", "");
+            if (!attributes.contains(param.toUpperCase())) {
+                error.add(param);
+            }
+        }
+
+        if (error.size() > 0) {
+            if (error.size() == 1) {
+                System.out.printf("The property %s is wrong.\n", error);
+            } else {
+                System.out.printf("The properties %s are wrong.\n", error);
+            }
+            System.out.printf("Available properties: %s\n", attributes);
+            System.out.println("Enter a request: ");
+            return 1;
+
+        }
+        return 0;
+    }
+
+    //need use case when opposites are blank
+    public static void multiple_param_routine(String[] digit) {
         List<String> attributes = new ArrayList<String>();
         List<String> params = new ArrayList<>();
         List<String> error = new ArrayList<String>();
@@ -216,6 +272,9 @@ public class Main {
         opposites.add("[square, sunny]");
         opposites.add("[spy, duck]");
         opposites.add("[duck, spy]");
+        opposites.add("[sad, happy]");
+        opposites.add("[happy, sad]");
+
 
         attribute_adder(attributes);
 
@@ -223,28 +282,16 @@ public class Main {
         long param2 = Long.valueOf(digit[1]);
 
         for (int i = 2; i < digit.length; i++) {
-            params.add(digit[i].toLowerCase().trim());
+            String attribute = (digit[i].toLowerCase().trim());
+            params.add(attribute);
         }
 
-        for (String param : params) {
-            if (!attributes.contains(param.toUpperCase())) {
-                error.add(param);
-            }
-        }
+        int error_check = error_checker(params, error, attributes); //fine
 
-        if (error.size() > 0) {
-            if (error.size() == 1) {
-                System.out.printf("The property %s is wrong.\n", error.toString());
-            } else {
-                System.out.printf("The properties %s are wrong.\n", error.toString());
-            }
-            System.out.printf("Available properties: %s\n", attributes);
-            System.out.println("Enter a request: ");
-        } else {
-            contradictions = contradiction_checker(contradictions, params, attributes);
+        if (error_check == 0) {
+            contradictions = contradiction_checker(contradictions, params, attributes); //fine
             if (contradictions.size() > 0) {
-                System.out.printf("The request contains mutually exclusive properties: %s\n" +
-                        "There are no numbers with these properties.\n", contradictions.toString());
+                System.out.printf("The request contains mutually exclusive properties: %s\n" + "There are no numbers with these properties.\n", contradictions);
                 System.out.println("Enter a request: ");
             } else {
                 match_finder(param1, param2, params, attributes);
@@ -256,14 +303,7 @@ public class Main {
     public static void main(String[] args) {
         System.out.println("Welcome to Amazing Numbers!\n");
 
-        System.out.println("Supported requests:\n" +
-                "- enter a natural number to know its properties;\n" +
-                "- enter two natural numbers to obtain the properties of the list:\n" +
-                "  * the first parameter represents a starting number;\n" +
-                "  * the second parameter shows how many consecutive numbers are to be printed;\n" +
-                "- two natural numbers and properties to search for;\n" +
-                "- separate the parameters with one space;\n" +
-                "- enter 0 to exit.\n");
+        System.out.println("Supported requests:\n" + "- enter a natural number to know its properties;\n" + "- enter two natural numbers to obtain the properties of the list:\n" + "  * the first parameter represents a starting number;\n" + "  * the second parameter shows how many consecutive numbers are to be printed;\n" + "- two natural numbers and properties to search for;\n" + "- a property preceded by minus must not be present in numbers;\n" + "- separate the parameters with one space;\n" + "- enter 0 to exit.\n");
 
         Scanner scanner = new Scanner(System.in);
         System.out.println("Enter a request: ");
@@ -287,7 +327,7 @@ public class Main {
                     three_param_routine(digit);
                     break;
                 default:
-                    four_param_routine(digit);
+                    multiple_param_routine(digit);
                     break;
             }
         }
